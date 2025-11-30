@@ -6,8 +6,8 @@ import math
 # ----------------------------------------------------
 # Streamlit 基本設定
 # ----------------------------------------------------
-st.set_page_config(page_title="ロボどら 収益・支出試算", layout="wide")
-st.title("ロボどら シミュレーション")
+st.set_page_config(page_title="ビジネスモデル 収益・支出試算", layout="wide")
+st.title("ビジネスモデル シミュレーション")
 
 st.sidebar.header("シミュレーションパラメータ")
 
@@ -20,12 +20,12 @@ MONTHS = years * 12
 # ----------------------------------------------------
 # アプリ関連パラメータ
 # ----------------------------------------------------
-monthly_fee = st.sidebar.number_input("ロボどらアプリ月額料金（円）", min_value=0, value=300, step=10)
+monthly_fee = st.sidebar.number_input("アプリ月額料金（円）", min_value=0, value=300, step=10)
 
 # ----------------------------------------------------
 # ロボット販売・手数料関連
 # ----------------------------------------------------
-units_per_event = st.sidebar.number_input("1イベントあたり販売台数（台）", min_value=0, value=2, step=1)
+units_per_event = st.sidebar.number_input("イベントあたり販売台数（台）", min_value=0, value=2, step=1)
 
 # ----------------------------------------------------
 # 販売会社イベント
@@ -137,10 +137,10 @@ with tab_settings:
             "CS費用（有料会員あたり月額・円）", min_value=0, value=10, step=10)
 
 
-    st.subheader("ポットスチル人件費")
+    st.subheader("事業体人件費")
     col13, col14 = st.columns(2)
     with col13:
-        base_fte = st.number_input("初期ポットスチル要員（人）", min_value=0.0, value=1.0, step=0.1)
+        base_fte = st.number_input("初期事業体要員（人）", min_value=0.0, value=1.0, step=0.1)
         fte_cost_per_month = st.number_input("人月当たり人件費（万円）", min_value=0, value=120, step=10) * 10000
     with col14:
         base_users = st.number_input("増員なしの上限（有料会員数）", min_value=0, value=2000, step=100)
@@ -278,7 +278,7 @@ per_shop_acquisition_cost = robots_per_shop * robot_unit_cost + sales_tool_cost_
 for m in range(MONTHS):
     cost_shop_acquisition[m] = new_companies[m] * per_shop_acquisition_cost
 
-# ポットスチル人件費（有料会員数ベース）
+# 事業体人件費（有料会員数ベース）
 for m in range(MONTHS):
     users = users_for_cost[m]
     users_over_base = max(0, users - base_users)
@@ -434,7 +434,7 @@ with tab_graphs:
 
     fig5.add_trace(go.Bar(x=months, y=cost_shop_acquisition, name="販売店向けロボット・ツール費", ))
     fig5.add_trace(go.Bar(x=months, y=cost_customer_support, name="カスタマーサポート費", ))
-    fig5.add_trace(go.Bar(x=months, y=cost_potstill_salary, name="ポットスチル人件費", ))
+    fig5.add_trace(go.Bar(x=months, y=cost_potstill_salary, name="事業体人件費", ))
 
     fig5.update_layout(
         title="その他 月次推移（全費目）",
@@ -511,7 +511,7 @@ with (((((((tab_summary))))))):
     st.write(f"💸 総クラウド開発費：**{total_cld_expense:,.0f}円**")
 
     total_psl_expense = sum(potstill_fte) + sum(cost_potstill_salary)
-    st.write(f"💸 総ポットスチル人件費：**{total_psl_expense:,.0f}円**")
+    st.write(f"💸 総事業体人件費：**{total_psl_expense:,.0f}円**")
 
     st.write(f"💸 総販売ツール費：**{sum(cost_shop_acquisition):,.0f}円**")
     st.write(f"💸 総カスタマーサポート費：**{sum(cost_customer_support):,.0f}円**")
