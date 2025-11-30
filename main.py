@@ -20,6 +20,7 @@ MONTHS = years * 12
 # ----------------------------------------------------
 # アプリ関連パラメータ
 # ----------------------------------------------------
+st.sidebar.caption(f"プラットフォーマー手数料＝15%")
 monthly_fee = st.sidebar.number_input("アプリ月額料金（円）", min_value=0, value=300, step=10)
 
 # ----------------------------------------------------
@@ -197,7 +198,7 @@ for m in range(MONTHS):
     paying_users[m] = remaining + conversions
 
     # アプリ収入
-    app_revenue[m] = paying_users[m] * monthly_fee
+    app_revenue[m] = paying_users[m] * monthly_fee * 0.85
 
     # 総売上
     total_revenue[m] = app_revenue[m] + commission_revenue[m]
