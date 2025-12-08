@@ -336,6 +336,37 @@ months = list(range(1, MONTHS + 1))
 # Plotly: 5段構成のサブプロット（収益部分は元コード準拠）
 # ----------------------------------------------------
 with tab_graphs:
+
+    # ----------------------------------------------------
+    # 追加：年間 売上・支出・利益・累損 グラフ
+    # ----------------------------------------------------
+    # 累損（＝年間利益の累計）を計算
+    cumulative_loss = []
+    running = 0
+    for p in annual_profit:
+        running += p
+        cumulative_loss.append(running)
+
+    fig2 = go.Figure()
+    fig2.add_trace(go.Bar(x=years_labels, y=annual_total, name="総売上"))
+    fig2.add_trace(go.Bar(x=years_labels, y=annual_expense, name="総支出"))
+    fig2.add_trace(go.Bar(x=years_labels, y=annual_profit, name="年間利益"))
+    fig2.add_trace(
+        go.Scatter(
+            x=years_labels,
+            y=cumulative_loss,
+            name="累損（累計利益）",
+            mode="lines+markers"
+        )
+    )
+
+    fig2.update_layout(
+        title="年間 売上・支出・利益・累損",
+        barmode="group",
+    )
+
+    st.plotly_chart(fig2, use_container_width=True)
+
     fig = make_subplots(
         rows=5,
         cols=1,
@@ -448,35 +479,7 @@ with tab_graphs:
     st.plotly_chart(fig5, use_container_width=True)
 
 
-    # ----------------------------------------------------
-    # 追加：年間 売上・支出・利益・累損 グラフ
-    # ----------------------------------------------------
-    # 累損（＝年間利益の累計）を計算
-    cumulative_loss = []
-    running = 0
-    for p in annual_profit:
-        running += p
-        cumulative_loss.append(running)
 
-    fig2 = go.Figure()
-    fig2.add_trace(go.Bar(x=years_labels, y=annual_total, name="総売上"))
-    fig2.add_trace(go.Bar(x=years_labels, y=annual_expense, name="総支出"))
-    fig2.add_trace(go.Bar(x=years_labels, y=annual_profit, name="年間利益"))
-    fig2.add_trace(
-        go.Scatter(
-            x=years_labels,
-            y=cumulative_loss,
-            name="累損（累計利益）",
-            mode="lines+markers"
-        )
-    )
-
-    fig2.update_layout(
-        title="年間 売上・支出・利益・累損",
-        barmode="group",
-    )
-
-    st.plotly_chart(fig2, use_container_width=True)
 
 
 # ----------------------------------------------------
