@@ -26,7 +26,8 @@ monthly_fee = st.sidebar.number_input("アプリ月額料金（円）", min_valu
 # ----------------------------------------------------
 # ロボット販売・手数料関連
 # ----------------------------------------------------
-units_per_event = st.sidebar.number_input("イベントあたり販売台数（台）", min_value=0, value=2, step=1)
+#units_per_event = st.sidebar.number_input("イベントあたり販売台数（台）", min_value=0, value=2, step=1)
+attendees_per_event = st.sidebar.number_input("イベントあたり集客数（人）", min_value=0, value=50, step=1)
 
 # ----------------------------------------------------
 # 販売会社イベント
@@ -52,26 +53,79 @@ with tab_settings:
     # 収入パラメータ（メイン領域）
     # ----------------------------------------------------
     st.header("収入パラメータ設定")
-    st.subheader("アプリ課金、ロボット販売収益")
-    col1mk, col2mk = st.columns(2)
-    with col1mk:
+    st.subheader("アプリ課金")
+    col = st.columns(2)
+    with col[0]:
         free_months = st.number_input("無料期間（月）", min_value=0, max_value=24, value=3, step=1)
-        robot_price = st.number_input("ロボット小売価格（円）", min_value=0, value=230_000, step=1_000)
-
-    with col2mk:
+    with col[1]:
         churn_rate = st.slider("月間解約率（%）", min_value=0.0, max_value=50.0, value=3.0, step=0.5) / 100.0
-        commission_rate = st.slider("販売手数料率（%）", min_value=0.0, max_value=100.0, value=10.0,
-                                            step=1.0) / 100.0
+
+    st.subheader("ロボット販売収益")
+
+    # ロボット種類数を指定
+    num_robot_types = st.number_input(
+        "ロボット種類数",
+        min_value=1,
+        max_value=10,
+        value=1,
+        step=1,
+    )
+    num_robot_types = int(num_robot_types)
+
+    # 種類ごとの設定を格納する配列
+    robot_names = []
+    robot_prices = []
+    commission_rates = []
+    purchase_rates =[]
+
+    for i in range(num_robot_types):
+        with st.expander(f"ロボットNo{i + 1} の設定", expanded=(i == 0)):
+            col = st.columns(2)
+            with col[0]:
+                name = st.text_input(
+                    f"ロボット名",
+                    value=f"No{i + 1}",
+                    key=f"robot_name_{i}",
+                )
+                price = st.number_input(
+                    f"小売価格（円）",
+                    min_value=0,
+                    value=230_000,
+                    step=1_000,
+                    key=f"robot_price_{i}",
+                )
+            with col[1]:
+                commission_rate = st.slider(
+                    f"販売手数料率（%）",
+                    min_value=0.0,
+                    max_value=25.0,
+                    value=10.0,
+                    step=1.0,
+                    key=f"commission_rate_{i}",
+                ) / 100.0
+                purchase_rate = st.slider(
+                    f"購入率（%）",
+                    min_value=0.0,
+                    max_value=10.0,
+                    value=3.0,
+                    step=0.1,
+                    key=f"purchase_rate_{i}",
+                ) / 100.0
+
+            robot_names.append(name)
+            robot_prices.append(price)
+            commission_rates.append(commission_rate)
+            purchase_rates.append(purchase_rate)
 
     # ----------------------------------------------------
     # 販売会社（★毎月の増加数をパラメータ化）
     # ----------------------------------------------------
-    st.subheader("販売会社（毎月の増加数パラメータ）")
-    col3mk, col4mk = st.columns(2)
-    with col3mk:
+    st.subheader("販売会社（増加数）")
+    col = st.columns(2)
+    with col[0]:
         initial_companies = st.number_input("開始販売会社数", min_value=1, value=1, step=1)
         max_companies = st.number_input("販売会社数の上限（社）", min_value=1, value=100, step=1)
-    with col4mk:
+    with col[1]:
         fixed_months_before_growth = st.number_input("初期実証期間", min_value=1, value=6, step=1)
         company_growth_per_month = st.number_input(
         "販売会社数の毎月の増加数（社／月）", min_value=0, value=2, step=1
@@ -86,14 +140,14 @@ with tab_settings:
     # ----------------------------------------------------
     st.header("支出パラメータ設定")
     st.subheader("アプリ開発・不具合修正")
-    col5, col6 = st.columns(2)
-    with col5:
+    col = st.columns(2)
+    with col[0]:
         android_dev_initial = st.number_input("Android 初期開発費（万円）",
                                               min_value=0, value=450, step=10) * 10000
         ios_dev_initial = st.number_input("iPhone 初期開発費（万円）",
                                           min_value=0, value=650, step=10) * 10000
         ios_dev_month = st.number_input("iPhone開発時期", min_value=0, value=12, step=1)
-    with col6:
+    with col[1]:
         android_bugfix_cost = st.number_input("Android 不具合修正費用（万円）",
                                               min_value=0, value=100, step=10) * 10000
         ios_bugfix_cost = st.number_input("iPhone 不具合修正費用（万円）",
@@ -101,32 +155,56 @@ with tab_settings:
         bugfix_cycle_months = st.number_input("不具合修正リリース周期（ヶ月）", min_value=1, value=6, step=1)
 
     st.subheader("クラウドシステム")
-    col7, col8 = st.columns(2)
-    with col7:
+    col = st.columns(2)
+    with col[0]:
         cloud_initial = st.number_input("クラウド初期構築費用（万円）", min_value=0, value=350, step=10) * 10000
-        aws_cost_per_user_month = st.number_input("AWS費用（有料会員あたり月額・円）", min_value=0, value=50, step=5)
         cloud_bugfix_cost = st.number_input("クラウド不具合修正費用（万円）", min_value=0, value=100, step=10) * 10000
+        num_thresholds = st.number_input("クラウド増強回数", min_value=0, value=4, step=1)
+    with col[1]:
+        aws_cost_per_user_month = st.number_input("AWS費用（有料会員あたり月額・円）", min_value=0, value=50, step=5)
+
+    # デフォルト値とステップを配列で定義
+    default_threshold_values = [300, 1000, 3000, 10000]
+    default_threshold_steps = [100, 100, 500, 1000]
+    default_scale_cost_values = [100, 150, 200, 300]
+
+    # 足りない要素を自動で補完（最後の値を繰り返し利用）
+    def expand_list(lst, target_len):
+        return lst + [lst[-1]] * (target_len - len(lst))
+
+    default_threshold_values = expand_list(default_threshold_values, num_thresholds)
+    default_threshold_steps = expand_list(default_threshold_steps, num_thresholds)
+    default_scale_cost_values = expand_list(default_scale_cost_values, num_thresholds)
+
+    # 結果格納用の配列
+    cloud_scale_thresholds = []
+    cloud_scale_costs = []
 
     col9, col10 = st.columns(2)
     with col9:
-        threshold_1 = st.number_input("クラウド増強閾値①（有料会員数）", min_value=0, value=300, step=100)
-        threshold_2 = st.number_input("クラウド増強閾値②（有料会員数）", min_value=0, value=1000, step=100)
-        threshold_3 = st.number_input("クラウド増強閾値③（有料会員数）", min_value=0, value=3000, step=500)
-        threshold_4 = st.number_input("クラウド増強閾値④（有料会員数）", min_value=0, value=10000, step=1000)
+        for i in range(num_thresholds):
+            threshold = st.number_input(
+                f"クラウド増強閾値 No{i+1}（有料会員数）",
+                min_value=0,
+                value=default_threshold_values[i],
+                step=default_threshold_steps[i],
+            )
+            cloud_scale_thresholds.append(threshold)
     with col10:
-        scale_cost_1 = st.number_input("クラウド増強費用①（万円）", min_value=0, value=100, step=10) * 10000
-        scale_cost_2 = st.number_input("クラウド増強費用②（万円）", min_value=0, value=150, step=10) * 10000
-        scale_cost_3 = st.number_input("クラウド増強費用③（万円）", min_value=0, value=200, step=10) * 10000
-        scale_cost_4 = st.number_input("クラウド増強費用④（万円）", min_value=0, value=300, step=10) * 10000
-
-    cloud_scale_thresholds = [threshold_1, threshold_2, threshold_3, threshold_4]
-    cloud_scale_costs = [scale_cost_1, scale_cost_2, scale_cost_3, scale_cost_4]
+        for i in range(num_thresholds):
+            cost = st.number_input(
+                f"クラウド増強費用 No{i+1}（万円）",
+                min_value=0,
+                value=default_scale_cost_values[i],
+                step=10
+            ) * 10000  # 円換算
+            cloud_scale_costs.append(cost)
 
     st.markdown("---")
     st.subheader("販売店向けロボット・販売ツール")
     col11, col12 = st.columns(2)
     with col11:
-        robot_unit_cost = st.number_input("ロボット1台あたり費用（円）", min_value=0, value=robot_price, step=1000)
+        robot_unit_cost = st.number_input("ロボット1式費用（円）", min_value=0, value=sum(robot_prices), step=1000)
         sales_tool_cost_per_shop = st.number_input("販売ツール一式費用／社（万円）", min_value=0, value=20, step=1) * 10000
     with col12:
         robots_per_shop = st.number_input("販売店あたりロボット台数（台）", min_value=0, value=4, step=1)
@@ -164,6 +242,9 @@ total_revenue = [0.0] * MONTHS
 # ----------------------------------------------------
 # 月次シミュレーション（収益）
 # ----------------------------------------------------
+# ループの前で、ロボット種別ごとの販売台数配列を用意しておく
+robot_sales_by_type = [[0] * MONTHS for _ in range(num_robot_types)]
+
 for m in range(MONTHS):
 
     # 契約販売会社数の推移
@@ -180,13 +261,31 @@ for m in range(MONTHS):
     events = companies * events_per_company_per_month
     events_per_month[m] = events
 
-    # 新規ユーザー（ロボット販売台数）
-    robots_sold = events * units_per_event
-    new_users[m] = robots_sold
-    trial_starts[m] = robots_sold + robot_uio_users_per_month
 
-    # 販売手数料収入
-    commission_revenue[m] = robots_sold * robot_price * commission_rate
+
+    # --- 複数種類のロボットに対応した計算 ---
+
+    total_robots_sold = 0
+    total_commission = 0.0
+
+    for i in range(num_robot_types):
+        # 種類ごとの販売台数（イベント数 × 集客数　×　種別ごとの購入率）
+        robots_sold_i = int(events *  attendees_per_event * purchase_rates[i])
+        robot_sales_by_type[i][m] = robots_sold_i
+
+        # 全種類の販売台数を合計（= 新規ユーザー数）
+        total_robots_sold += robots_sold_i
+
+        # 種類ごとの販売手数料
+        commission_i = robots_sold_i * robot_prices[i] * commission_rates[i]
+        total_commission += commission_i
+
+    # 新規ユーザー（全ロボット種別の合計販売台数）
+    new_users[m] = total_robots_sold
+    trial_starts[m] = total_robots_sold + robot_uio_users_per_month
+
+    # 販売手数料収入（全ロボット種別の合計）
+    commission_revenue[m] = total_commission
 
     # 有料会員数
     prev = paying_users[m - 1] if m > 0 else 0
@@ -329,74 +428,120 @@ for y in range(years):
     annual_expense.append(sum(total_expense[start:end]))
     annual_profit.append(sum(profit[start:end]))
 
+# 年間ロボット販売台数（種類別）
+annual_robot_sales_by_type = [
+    [0] * years for _ in range(num_robot_types)
+]
+
+for i in range(num_robot_types):
+    for y in range(years):
+        start = y * 12
+        end = min((y + 1) * 12, MONTHS)
+        annual_robot_sales_by_type[i][y] = sum(robot_sales_by_type[i][start:end])
+        print(robot_sales_by_type[i][start:end])
+
+
+# ----------------------------------------------------
+# 追加：年間 売上・支出・利益・累損 グラフ
+# ----------------------------------------------------
+# 累損（＝年間利益の累計）を計算
+cumulative_loss = []
+running = 0
+for p in annual_profit:
+    running += p
+    cumulative_loss.append(running)
+
 years_labels = [f"{y+1}年目" for y in range(years)]
 months = list(range(1, MONTHS + 1))
 
 # ----------------------------------------------------
 # Plotly: 5段構成のサブプロット（収益部分は元コード準拠）
 # ----------------------------------------------------
-with tab_graphs:
+fig2_colors = ["#1F5DBA", "#F03531", "#7DBBFF", "#F5A3A3"]
+fig_colors  = ["#1F5DBA", "#2E8B57", "#DAA520", "#ff9da7"]
 
-    # ----------------------------------------------------
-    # 追加：年間 売上・支出・利益・累損 グラフ
-    # ----------------------------------------------------
-    # 累損（＝年間利益の累計）を計算
-    cumulative_loss = []
-    running = 0
-    for p in annual_profit:
-        running += p
-        cumulative_loss.append(running)
+with tab_graphs:
 
     fig2 = go.Figure()
     fig2.add_trace(go.Bar(x=years_labels, y=annual_total, name="総売上"))
     fig2.add_trace(go.Bar(x=years_labels, y=annual_expense, name="総支出"))
     fig2.add_trace(go.Bar(x=years_labels, y=annual_profit, name="年間利益"))
-    fig2.add_trace(
-        go.Scatter(
-            x=years_labels,
-            y=cumulative_loss,
-            name="累損（累計利益）",
-            mode="lines+markers"
-        )
-    )
+    fig2.add_trace(go.Scatter(x=years_labels, y=cumulative_loss, name="累損（累計利益）", mode="lines+markers"))
 
     fig2.update_layout(
-        title="年間 売上・支出・利益・累損",
+        title="売上・支出・利益・累損",
         barmode="group",
+        colorway=fig2_colors
     )
-
     st.plotly_chart(fig2, use_container_width=True)
 
     fig = make_subplots(
-        rows=5,
+        rows=2,
+        cols=1,
+        specs=[
+            [{"secondary_y": False}],
+            [{"secondary_y": False}],
+        ],
+        vertical_spacing=0.2,
+        subplot_titles=[
+            "総売上・販売手数料・アプリ収入",
+            "販売台数"
+        ]
+    )
+
+
+    # ④ 年間売上（総・手数料・アプリ）
+    fig.add_trace(go.Bar(x=years_labels, y=annual_total, name="総売上"), row=1, col=1)
+    fig.add_trace(go.Bar(x=years_labels, y=annual_commission, name="販売手数料収入"), row=1, col=1)
+    fig.add_trace(go.Bar(x=years_labels, y=annual_app, name="アプリ収入"), row=1, col=1)
+
+    # ⑤ 年間ロボット販売台数
+    # 種類別 年間販売台数の棒グラフ
+    for i in range(num_robot_types):
+        fig.add_trace(
+            go.Bar(
+                x=years_labels,
+                y=annual_robot_sales_by_type[i],
+                name=f"{robot_names[i]}"
+            ),
+            row=2,
+            col=1
+        )
+
+    fig.update_layout(
+        height=600,
+        barmode="group",
+        title="売上げ・販売台数",
+        legend=dict(orientation="h", yanchor="bottom", y=-0.12, xanchor="center", x=0.5),
+        colorway=fig_colors
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+
+    fig = make_subplots(
+        rows=3,
         cols=1,
         specs=[
             [{"secondary_y": False}],
             [{"secondary_y": True}],
             [{"secondary_y": True}],
-            [{"secondary_y": False}],
-            [{"secondary_y": False}],
         ],
         vertical_spacing=0.06,
         subplot_titles=[
-            "① 販売会社数・イベント数・新規ユーザー数（毎月）",
-            "② 新規ユーザー数（左軸）・販売手数料収入（右軸）",
-            "③ 有料会員数（左軸）・アプリ収入（右軸）",
-            "④ 年間売上げ：総売上・販売手数料・アプリ収入",
-            "⑤ 年間コミュニケーションロボット販売台数"
+            "販売会社数・イベント数",
+            "新規ユーザー数（左軸）",
+            "有料会員数（左軸）・アプリ収入（右軸）",
         ]
     )
 
     # ①
     fig.add_trace(go.Bar(x=months, y=contract_companies, name="販売会社数"), row=1, col=1)
     fig.add_trace(go.Bar(x=months, y=events_per_month, name="イベント数"), row=1, col=1)
-    fig.add_trace(go.Bar(x=months, y=new_users, name="新規ユーザー数"), row=1, col=1)
 
     # ②
     fig.add_trace(go.Bar(x=months, y=new_users, name="新規ユーザー数", opacity=0.5),
                   row=2, col=1, secondary_y=False)
-    fig.add_trace(go.Scatter(x=months, y=commission_revenue, name="販売手数料収入", mode="lines"),
-                  row=2, col=1, secondary_y=True)
 
     # ③
     fig.add_trace(go.Bar(x=months, y=paying_users, name="有料会員数", opacity=0.5),
@@ -404,23 +549,16 @@ with tab_graphs:
     fig.add_trace(go.Scatter(x=months, y=app_revenue, name="アプリ収入", mode="lines"),
                   row=3, col=1, secondary_y=True)
 
-    # ④ 年間売上（総・手数料・アプリ）
-    fig.add_trace(go.Bar(x=years_labels, y=annual_total, name="総売上"), row=4, col=1)
-    fig.add_trace(go.Bar(x=years_labels, y=annual_commission, name="販売手数料収入"), row=4, col=1)
-    fig.add_trace(go.Bar(x=years_labels, y=annual_app, name="アプリ収入"), row=4, col=1)
-
-    # ⑤ 年間ロボット販売台数
-    fig.add_trace(go.Bar(x=years_labels, y=annual_robot_sales, name="年間ロボット販売台数", marker_color="purple"),
-                  row=5, col=1)
 
     fig.update_layout(
-        height=2000,
+        height=1500,
         barmode="group",
         title="収益計算（ロボット販売 × アプリ課金）",
         legend=dict(orientation="h", yanchor="bottom", y=-0.12, xanchor="center", x=0.5),
     )
 
     st.plotly_chart(fig, use_container_width=True)
+
 
     # 支出項目別 月次推移グラフ
     st.subheader("支出項目別 月次推移")
